@@ -1,10 +1,12 @@
+// src/modules/trades/trades.service.ts
+
+
 import { randomUUID } from 'crypto';
-import { TradeOffer, TradeAssets } from './trades.types.js';
+import type { TradeOffer, TradeAssets } from './trades.types.js';
+import { setTrade, getTradeById } from './ trades.store.js';
 import { acquireLock, releaseLocksByTrade } from '../locks/locks.service.js';
 
-const trades = new Map<string, TradeOffer>();
-
-export function createTradeOffer(
+export function createTrade(
   createdBy: string,
   offer: TradeAssets,
   request: TradeAssets
@@ -18,36 +20,31 @@ export function createTradeOffer(
     createdAt: Date.now()
   };
 
-  // 🔒 Lock offered items
-  offer.items?.forEach(item => {
-    acquireLock(
-      createdBy,
-      'item',
-      item.itemId,
-      trade.id
-    );
-  });
+  offer.items?.forEach(i =>
+    acquireLock(createdBy, 'item', i.itemId, trade.id)
+  );
 
-  // 🔒 Lock offered currencies
-  offer.currencies?.forEach(currency => {
-    acquireLock(
-      createdBy,
-      'currency',
-      currency.currency,
-      trade.id
-    );
-  });
+  offer.currencies?.forEach(c =>
+    acquireLock(createdBy, 'currency', c.currency, trade.id)
+  );
 
-  trades.set(trade.id, trade);
+  setTrade(trade);
   return trade;
 }
 
-export function getTradeById(id: string): TradeOffer | undefined {
-  return trades.get(id);
-}
+export function completeTrade(
+  tradeId: string,
+  acceptedBy: string
+): TradeOffer {
+  const trade = getTradeById(tradeId);
 
-export function listOpenTrades(): TradeOffer[] {
-  return Array.from(trades.values()).filter(
-    trade => trade.status === 'open'
-  );
+  if (!trade || trade.status !== 'open') {
+    throw new Error('Trade not open');
+  }
+
+  trade.status = 'completed';
+  (trade as any).acceptedBy = acceptedBy;
+
+  releaseLocksByTrade(trade.id);
+  return trade;
 }

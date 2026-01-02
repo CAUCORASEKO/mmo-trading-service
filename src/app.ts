@@ -1,3 +1,6 @@
+// src/app.ts
+
+// src/app.ts
 import Fastify from 'fastify';
 import authPlugin from './plugins/auth.plugin.js';
 import { tradesRoutes } from './modules/trades/trades.routes.js';

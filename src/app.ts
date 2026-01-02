@@ -1,16 +1,15 @@
 import Fastify from 'fastify';
+import { tradesRoutes } from './modules/trades/trades.routes.js';
 
 export function buildApp() {
-  const app = Fastify({
-    logger: true
-  });
+  const app = Fastify({ logger: true });
 
-  app.get('/health', async () => {
-    return {
-      status: 'ok',
-      service: 'mmo-trading-service'
-    };
-  });
+  app.register(tradesRoutes);
+
+  app.get('/health', async () => ({
+    status: 'ok',
+    service: 'mmo-trading-service'
+  }));
 
   return app;
 }

@@ -24,8 +24,10 @@ declare module 'fastify' {
 }
 
 export default fp(async (app) => {
+  const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
+
   app.register(jwt, {
-    secret: 'super-secret-key'
+    secret: JWT_SECRET
   });
 
   app.decorate(

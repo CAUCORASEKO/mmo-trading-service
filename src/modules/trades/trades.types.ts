@@ -16,17 +16,30 @@ export interface TradeAssets {
 }
 
 export type TradeStatus =
-  | 'open'
-  | 'locked'
-  | 'completed'
-  | 'cancelled';
+  | 'open'        // Trade visible, assets locked
+  | 'locked'      // Being processed (accept in progress)
+  | 'completed'   // Successfully executed
+  | 'cancelled';  // Cancelled or expired
 
 export interface TradeOffer {
   id: string;
-  createdBy: string; // playerId
+
+  /** Player who created the trade */
+  createdBy: string;
+
+  /** Player who accepted the trade (when completed) */
+  acceptedBy?: string;
+
+  /** Assets offered by creator */
   offer: TradeAssets;
+
+  /** Assets requested in return */
   request: TradeAssets;
+
   status: TradeStatus;
+
   createdAt: number;
+
+  /** Optional expiration timestamp (for cleanup jobs) */
   expiresAt?: number;
 }
